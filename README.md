@@ -2,20 +2,21 @@ Dspace REST API Harvester
 =========================
 
 The __Dspace REST API Harvester plugin__ imports records from Dspace REST API data providers.
-Currently, it supports the Dspace 3.x with wijiti REST API. It uses guzzle, a PHP HTTP client
+Currently, it supports the Dspace 4.x REST API. It uses guzzle, a PHP HTTP client
 and framework, as RESTful web service clients [http://guzzlephp.org/].
 
 Using this plugin, you can upload your customized metadata -
 they can be the extensions of Dublin Core and your self-defined schema. Using the elements.ini
 to config and map the metadata to Omeka data model.
 
-Also, currently, the plugin only imports the metadata, but allows you to link the bitstreams
-from Dspace to Omeka items (this feature is only tested on Dspace XMLUI). The plugin can be
-used for one-time data transfers, or to keep up-to-date with changes to an online repository.
+Also, currently, the plugin only imports the metadata and thumbnail images if available, 
+but allows you to link the bitstreams from Dspace to Omeka items (this feature is only 
+tested on Dspace XMLUI). The plugin can be used for one-time data transfers, or to 
+keep up-to-date with changes to an online repository.
 
 The future plan includes more flexible metadata config (add/remove from UI)
-and bitstream copy/link options. Also, we are planning to add support for integrated REST API
-in Dspace 4.x.
+and bitstream copy/link options. Also, the branch DspaceRestapiHaverster-wijiti supports Dspace 3.x 
+with wijiti REST API.
 
 Configuration
 -------------
