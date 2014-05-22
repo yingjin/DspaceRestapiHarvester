@@ -28,18 +28,4 @@ dc.digitization.specifications = Digitization Specifications
 dc.contributor.funder = Funder
 dc.relation.ispartofseries = Is Part of Series
 
-/** Example of other schema maybe included below **/
-/**-----------------------------
-[ElementSet:chao]
-chao = Chao Medadata
-chao.company.name = Company Name
-chao.company.address = Company Address
-chao.company.nation = Company Nation
-chao.company.otherinfo = Company Other Information
-chao.productagency = Product Agency
-chao.date.chineselunar = Chinese Lunar
-chao.date.minguo = Republic Year
-chao.date.regnalyear = Regnal Year of Emperor
-chao.contributor.printer = Publishing Organization
-chao.printer.cheifeditor = Cheif Editor
----------------------------------**/
+
