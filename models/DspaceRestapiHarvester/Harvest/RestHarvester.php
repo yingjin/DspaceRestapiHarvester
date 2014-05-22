@@ -44,6 +44,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     private $_elementSets;
     private $_elements;
 
+    private $_item_type_names;
     /**
      * Class constructor.
      * 
@@ -73,28 +74,121 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     {
         return $this->_options[$key];
     }
-    
-    /**
-     *
-     * @param json The current record object
-     */
-    protected function _harvestRecord($record){
 
+    protected function _harvestRecord($id){
+
+
+        $record = $this->_harvest->listRecord($id);
+        $resultsCount = count($record);
+        if ($resultsCount>0) {
+
+        // go through each metadata field
+        $elementTexts = array();
+        $haveItemType = "";
+        foreach($record['metadata'] as $field){
+
+
+            $key = $field['key'];
+            if(array_key_exists($key, $this->_elements)){
+                $schema = substr($key, 0, strpos($key, '.'));
+                //$elementTexts[$elementSet][$elements[$elementName]][] = array('text' => (string) $field["value"], 'html' => (boolean) false);
+                $elementTexts = $this->_buildElementTexts($elementTexts,$this->_elementSets[$schema],$this->_elements[$key],(string) $field["value"],false);
+            }else{
+
+                 //$this->_addStatusMessage("Elements Not IN !!!!!!!!!!!! $elementName");
+            }
+
+            // Check $_item_type_names with dc.type or dc.type.dcmi
+            if($key == 'dc.type' or $key == 'dc.type.dcmi'){
+                //check if the value is in itemType table
+                /* get the item_type_names from omeka_item_types **/
+
+                $itemType = get_db()->getTable('ItemType')->find($key);
+                if ($itemType) {
+                    $haveItemType = $itemType->name;
+                }
+
+            }
+        }
+
+        if($haveItemType == ""){
         $itemMetadata = array(
-                   'item_type_name' => 'Still Image',
                    'collection_id' => $this->_collection->id,
-                   'identifier'      => $record["id"],
+                   'identifier'      => $id,
                    'modified'  => $record["lastModified"],
                     'public'        => $this->getOption('public'),
                     'featured'      => $this->getOption('featured'),
                );
+        }else{
+        $itemMetadata = array(
+                   'item_type_name' => $haveItemType,
+                   'collection_id' => $this->_collection->id,
+                   'identifier'      => $id,
+                   'modified'  => $record["lastModified"],
+                    'public'        => $this->getOption('public'),
+                    'featured'      => $this->getOption('featured'),
+               );
+
+        }
+
+        // harvest bitstream for the record
+
+        $fileMetadata = array();
+        foreach($record['bitstreams'] as $bitstream){
+
+           $bt_name =  $bitstream["name"];
+           $bt_seq = $bitstream["sequenceId"];
+           $bundle_name = $bitstream["bundleName"];
+           // FIXME : getting dspace_url in a way might break in other DSpace with different config
+           // remove the last path of restapi
+
+           // trim out the trailing / in url
+           //-$trimed_url = rtrim($this->base_url, "/");
+           // remove the path after last /
+
+           //-$dspace_url = substr($trimed_url, 0, strrpos($trimed_url, "/"));
+
+           //$query = $dspace_url. "/bitstreams/" . $bitstream_id . "/download.json?user=email&pass=";
+           //-$bt_url = $dspace_url ."/bitstream/handle/" . $item_handle . "/" . $bt_name . "?sequence=" . $bt_seq;
+           $retrieveUrl =  $this->_harvest->base_url .  $bitstream['retrieveLink'];
+
+           if($bundle_name == "THUMBNAIL"){
+               $bt_name = substr($bt_name, 0, -4);
+               //$thumbList[$bt_name] = $bt_url;
+               $fileMetadata['file_transfer_type'] = 'url';
+               $fileMetadata['files'] = array(
+                   'Upload' => null,
+                   'Url' => $retrieveUrl,
+                   'source' => $retrieveUrl,
+                   'name'   => $bt_name,
+                   'metadata' => array(),
+
+               );
+           }else if($bundle_name =="ORIGINAL"){
+               //$origList[$bt_name] = $bt_url;
+           }
+
+
+        }
+        }
+       return array('itemMetadata' => $itemMetadata,
+                    'elementTexts' => $elementTexts,
+                    'fileMetadata' => $fileMetadata);
+
+    }
+
+
+    /**
+     *
+     * @param json The current record object
+     */
+/*    protected function _harvestRecord($record){
+
+
         // go through each metadata field
-        $elementName = "";
         $elementTexts = array();
+        $haveItemType = "";
         foreach($record["metadata"] as $field){
-           //check if the elements set (schema) is dublin core
-            //$elementSet = "";
-            //$elements = "";
             if($field["qualifier"]){
                 $elementName = $field["schema"] . '.' . $field["element"] . "." . $field["qualifier"];
             }else{
@@ -110,35 +204,49 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
 
                  //$this->_addStatusMessage("Elements Not IN !!!!!!!!!!!! $elementName");
             }
+
+            // Check $_item_type_names with dc.type or dc.type.dcmi
+            if($elementName == 'dc.type' or $elementName == 'dc.type.dcmi'){
+                //check if the value is in itemType table
+
+                $itemType = get_db()->getTable('ItemType')->find($elementName);
+                if ($itemType) {
+                    $haveItemType = $itemType->name;
+                }
+
+            }
+        }
+
+        if($haveItemType == ""){
+        $itemMetadata = array(
+                   'collection_id' => $this->_collection->id,
+                   'identifier'      => $record["id"],
+                   'modified'  => $record["lastModified"],
+                    'public'        => $this ->getOption('public'),
+                    'featured'      => $this->getOption('featured'),
+               );
+        }else{
+        $itemMetadata = array(
+                   'item_type_name' => $haveItemType,
+                   'collection_id' => $this->_collection->id,
+                   'identifier'      => $record["id"],
+                   'modified'  => $record["lastModified"],
+                    'public'        => $this->getOption('public'),
+                    'featured'      => $this->getOption('featured'),
+               );
+
         }
 
         // harvest bitstream for the record
 
         $fileMetadata = array();
-       /* $bundles = $this->_harvest->listBundles($record["id"]);
-        $bundleCount = count($bundles);
-        foreach($bundles as $bundle){
-           if($bundle["name"] == "THUMBNAIL");
-               $bt_id =  $bundle["bitstreams"][0]["id"];
-               $bitstream = $this->_harvest->getBitstream($bt_id);
-	       
-               $fileMetadata['file_transfer_type'] = 'url';
-               $fileMetadata['files'] = array(
-                   'Upload' => null,
-                   'Url' => "http://dspaceland.rice.edu:8080/bitstream/handle/1911/25/IMG_2003.JPG?sequence=1",
-                   'source' => (string) "http://dspaceland.rice.edu:8080/bitstream/handle/1911/25/IMG_2003.JPG?sequence=1",
-                   'name'   => (string) "IMG_2003.jpg",
-                   'metadata' => array(),
-           );
-
-       } */
 
        return array('itemMetadata' => $itemMetadata,
                     'elementTexts' => $elementTexts,
                     'fileMetadata' => $fileMetadata);
 
     }
-    
+  **/
     /**
      * Checks whether the current record has already been harvested, and
      * returns the record if it does.
@@ -147,10 +255,10 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
      * @return DspaceRestapiHarvester_Record|false The model object of the record,
      *      if it exists, or false otherwise.
      */
-    private function _recordExists($json)
+    private function _recordExists($handle, $identifier)
     {   
-        $handle = $json["handle"];
-        $identifier = $json["id"];
+        //$handle = $json["handle"];
+        //$identifier = $json["id"];
         
         /* Ideally, the handle would be globally-unique, but for
            poorly configured servers that might not be the case.  However,
@@ -228,10 +336,10 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
         if (!$this->isArchivedRecord($record)) {
             return;
         }
-        $existingRecord = $this->_recordExists($record);
+        $existingRecord = $this->_recordExists($record['handle'],$record['id']);
 
 
-        $harvestedRecord = $this->_harvestRecord($record);
+        $harvestedRecord = $this->_harvestRecord($record['id']);
         
         // Cache the record for later use.
         $this->_record = $record;
@@ -263,9 +371,9 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
      */
     public function isArchivedRecord($record)
     {
-        return ($record["isArchived"]);
+        //return ($record["isArchived"]);
+        return ($record["archived"]);
     }
-    
     /**
      * Insert a record into the database.
      * 
@@ -318,6 +426,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     protected function _beforeHarvest()
     {
         $harvest = $this->_getHarvest();
+
 
         $collectionMetadata = array(
             'metadata' => array(

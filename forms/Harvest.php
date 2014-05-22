@@ -20,6 +20,12 @@ class DspaceRestapiHarvester_Form_Harvest extends Omeka_Form
             'size' => 60,
         ));
         
+ /*       $this->addElement('select', 'rest_api', array(
+            'label' => 'REST API',
+            'description' => __('Select REST API Implementation'),
+            'multiOptions'  => $this->getRestapiForSelect()
+        ));
+   */
         $this->applyOmekaStyles();
         $this->setAutoApplyOmekaStyles(false);
         
@@ -31,4 +37,20 @@ class DspaceRestapiHarvester_Form_Harvest extends Omeka_Form
                 array('HtmlTag', array('tag' => 'div', 'class' => 'field'))))
         ));
     }
+
+     /**
+     * Get the list of Rest API Implementation.
+     *
+     * @return array $rest_api.
+     */
+  /*  public function getRestapiForSelect()
+    {
+        $rest_api = array();
+
+        $rest_api[0] = 'wijiti';
+        $rest_api[1] = 'hedtek';
+
+        return $rest_api;
+
+    } */
 }

@@ -68,7 +68,11 @@ class DspaceRestapiHarvester_Request
      */
     public function listCollections()
     {
-        $query = "collections.json";
+        // wijiti query
+        //$query = "collections.json";
+
+        // hedtek query
+        $query = "collections?expand=all";
         $retVal = array();
         try {
             $json = $this->_makeRequest($query);
@@ -87,7 +91,8 @@ class DspaceRestapiHarvester_Request
             $collections = array();
         }
 
-        $retVal['collections'] = $collections['collections'];
+        //$retVal['collections'] = $collections['collections'];
+        $retVal['collections'] = $collections;
         return $retVal;
     }
 
@@ -103,7 +108,7 @@ class DspaceRestapiHarvester_Request
     {
         if ($client === null) {
             $client = new Guzzle\Http\Client();
-
+            $client->setDefaultHeaders(array('Accept' => 'application/json'));
         }        
         $this->_client = $client;
     }
