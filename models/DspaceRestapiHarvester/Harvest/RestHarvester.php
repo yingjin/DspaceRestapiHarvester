@@ -155,7 +155,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
            if($bundle_name == "THUMBNAIL"){
                $bt_name = substr($bt_name, 0, -4);
                //$thumbList[$bt_name] = $bt_url;
-               $fileMetadata['file_transfer_type'] = 'url';
+               $fileMetadata['file_transfer_type'] = 'Url';
                $fileMetadata['files'] = array(
                    'Upload' => null,
                    'Url' => $retrieveUrl,
