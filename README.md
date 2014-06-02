@@ -9,9 +9,9 @@ Using this plugin, you can upload your customized metadata -
 they can be the extensions of Dublin Core and your self-defined schema. Using the elements.ini
 to config and map the metadata to Omeka data model.
 
-The plugin only imports the metadata and thumbnail images if available, 
-but allows you to link the bitstreams from Dspace to Omeka items. The plugin can be used for 
-one-time data transfers, or to keep up-to-date with changes to an online repository.
+The plugin only imports the metadata, but allows you to link the bitstreams including thumbnails
+from Dspace to Omeka items. The plugin can be used for one-time data transfers, or to keep
+up-to-date with changes to an online repository.
 
 The future plan includes more flexible metadata config (add/remove from UI)
 and bitstream copy/link options. Also, the branch DspaceRestapiHaverster-wijiti supports Dspace 3.x 

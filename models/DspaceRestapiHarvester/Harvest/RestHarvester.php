@@ -134,28 +134,16 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
         // harvest bitstream for the record
 
         $fileMetadata = array();
-        foreach($record['bitstreams'] as $bitstream){
+        /*foreach($record['bitstreams'] as $bitstream){
 
            $bt_name =  $bitstream["name"];
            $bt_seq = $bitstream["sequenceId"];
            $bundle_name = $bitstream["bundleName"];
-           // FIXME : getting dspace_url in a way might break in other DSpace with different config
-           // remove the last path of restapi
-
-           // trim out the trailing / in url
-           //-$trimed_url = rtrim($this->base_url, "/");
-           // remove the path after last /
-
-           //-$dspace_url = substr($trimed_url, 0, strrpos($trimed_url, "/"));
-
-           //$query = $dspace_url. "/bitstreams/" . $bitstream_id . "/download.json?user=email&pass=";
-           //-$bt_url = $dspace_url ."/bitstream/handle/" . $item_handle . "/" . $bt_name . "?sequence=" . $bt_seq;
            $retrieveUrl =  $this->_harvest->base_url .  $bitstream['retrieveLink'];
 
            if($bundle_name == "THUMBNAIL"){
                $bt_name = substr($bt_name, 0, -4);
-               //$thumbList[$bt_name] = $bt_url;
-               $fileMetadata['file_transfer_type'] = 'url';
+               $fileMetadata['file_transfer_type'] = 'Url';
                $fileMetadata['files'] = array(
                    'Upload' => null,
                    'Url' => $retrieveUrl,
@@ -165,11 +153,10 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
 
                );
            }else if($bundle_name =="ORIGINAL"){
-               //$origList[$bt_name] = $bt_url;
            }
 
 
-        }
+        }  */
         }
        return array('itemMetadata' => $itemMetadata,
                     'elementTexts' => $elementTexts,
@@ -178,75 +165,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     }
 
 
-    /**
-     *
-     * @param json The current record object
-     */
-/*    protected function _harvestRecord($record){
 
-
-        // go through each metadata field
-        $elementTexts = array();
-        $haveItemType = "";
-        foreach($record["metadata"] as $field){
-            if($field["qualifier"]){
-                $elementName = $field["schema"] . '.' . $field["element"] . "." . $field["qualifier"];
-            }else{
-                $elementName = $field["schema"] . '.' . $field["element"];
-            }
-
-
-            if(array_key_exists($elementName, $this->_elements)){
-
-                //$elementTexts[$elementSet][$elements[$elementName]][] = array('text' => (string) $field["value"], 'html' => (boolean) false);
-                $elementTexts = $this->_buildElementTexts($elementTexts,$this->_elementSets[$field['schema']],$this->_elements[$elementName],(string) $field["value"],false);
-            }else{
-
-                 //$this->_addStatusMessage("Elements Not IN !!!!!!!!!!!! $elementName");
-            }
-
-            // Check $_item_type_names with dc.type or dc.type.dcmi
-            if($elementName == 'dc.type' or $elementName == 'dc.type.dcmi'){
-                //check if the value is in itemType table
-
-                $itemType = get_db()->getTable('ItemType')->find($elementName);
-                if ($itemType) {
-                    $haveItemType = $itemType->name;
-                }
-
-            }
-        }
-
-        if($haveItemType == ""){
-        $itemMetadata = array(
-                   'collection_id' => $this->_collection->id,
-                   'identifier'      => $record["id"],
-                   'modified'  => $record["lastModified"],
-                    'public'        => $this ->getOption('public'),
-                    'featured'      => $this->getOption('featured'),
-               );
-        }else{
-        $itemMetadata = array(
-                   'item_type_name' => $haveItemType,
-                   'collection_id' => $this->_collection->id,
-                   'identifier'      => $record["id"],
-                   'modified'  => $record["lastModified"],
-                    'public'        => $this->getOption('public'),
-                    'featured'      => $this->getOption('featured'),
-               );
-
-        }
-
-        // harvest bitstream for the record
-
-        $fileMetadata = array();
-
-       return array('itemMetadata' => $itemMetadata,
-                    'elementTexts' => $elementTexts,
-                    'fileMetadata' => $fileMetadata);
-
-    }
-  **/
     /**
      * Checks whether the current record has already been harvested, and
      * returns the record if it does.
