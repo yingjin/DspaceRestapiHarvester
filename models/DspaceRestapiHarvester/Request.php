@@ -68,11 +68,7 @@ class DspaceRestapiHarvester_Request
      */
     public function listCollections()
     {
-        // wijiti query
-        //$query = "collections.json";
-
-        // hedtek query
-        $query = "collections?expand=all";
+        $query = "collections?limit=99999999";  // just limit a big number for safe
         $retVal = array();
         try {
             $json = $this->_makeRequest($query);
@@ -91,8 +87,7 @@ class DspaceRestapiHarvester_Request
             $collections = array();
         }
 
-        //$retVal['collections'] = $collections['collections'];
-        $retVal['collections'] = $collections;
+        $retVal = $collections;
         return $retVal;
     }
 
@@ -108,7 +103,7 @@ class DspaceRestapiHarvester_Request
     {
         if ($client === null) {
             $client = new Guzzle\Http\Client();
-            $client->setDefaultHeaders(array('Accept' => 'application/json'));
+
         }        
         $this->_client = $client;
     }
@@ -121,13 +116,15 @@ class DspaceRestapiHarvester_Request
 	// the baseUrl for the guzzle client is the rest Url
         $client->setBaseUrl($this->_baseUrl);
         $client->setUserAgent($this->_getUserAgent(), false);
-        $request = $client->get($query);
 
+        $request = $client->get($query);
+        //$request->setHeader("Accept", "application/json");
         // Send the request and get the response
+
         $response = $request->send();
 
         if ($response->isSuccessful() && !$response->isRedirect()) {
-            if(strpos($query,'download.json') !== false)
+            if(strpos($query,'retrieve') !== false)
             {
                 return $response;
             }else{

@@ -82,6 +82,7 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
           `collection_spec` text,
           `collection_name` text,
           `collection_handle` text,
+          `collection_size` int unsigned default NULL,
           `status` enum('queued','in progress','completed','error','deleted','killed') NOT NULL default 'queued',
           `status_messages` text,
           `resumption_token` text,
@@ -214,7 +215,9 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookPublicItemsShow()
     {
-        // Get the record.
+    
+    	$this->showItemBitstream();
+        /*// Get the record.
         $record = get_current_record('item');
         $id = $record->id; // this is the item_id from omeka
         $existRecord = $this->_db->getTable('DspaceRestapiHarvester_Record')->findByItemId($id);
@@ -228,7 +231,7 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
 	    $bitstreams = $harvester->listBitstreams($source_item_id, $handle);
 	    $thumbList = $bitstreams["thumbnail"];
 	    $origList = $bitstreams["original"];
-     	    $html = "";
+     	$html = "";
 
 	    if($origList){
 	        foreach($origList as $key => $value){
@@ -243,7 +246,7 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
 	    }else{
 	        echo "No original Files !!!";
 	    }
-        }else{echo "No existing Records!!!";}
+        }else{echo "No existing Records!!!";}*/
      }
 
     /**
@@ -286,30 +289,32 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
         $source_item_id = $existRecord->identifier;
 
         if ($existRecord) {
-	    // get the harvest info and then complie the bitstream list from it
-	    $harvest_id = $existRecord->harvest_id;
-	    $handle = $existRecord->handle;
+	   		// get the harvest info and then complie the bitstream list from it
+	    	$harvest_id = $existRecord->harvest_id;
+    	    $handle = $existRecord->handle;
             $harvester = $this->_db->getTable('DspaceRestapiHarvester_Harvest')->findByHarvestId($harvest_id);
-	    $bitstreams = $harvester->listBitstreams($source_item_id, $handle);
-	    $thumbList = $bitstreams["thumbnail"];
-	    $origList = $bitstreams["original"];
-     	    $html = "";
-
-	    if($origList){
-	        foreach($origList as $key => $value){
-	            if(array_key_exists($key, $thumbList)){
-        	        // Construct HTML.
-        	        $html .= "<a href='{$value}'><img alt='{$key}' src='{$thumbList[$key]}' /></a><br/>";
-		    }else{
-        	        $html .= "<a href='$value'>{$key}</a><br/>";
-		    }
-		}
-                echo $html;
-	    }else{
-
-	    }
+		    $bitstreams = $harvester->listBitstreams($source_item_id, $handle);
+	        $thumbList = $bitstreams["thumbnail"];
+	    	$origList = $bitstreams["original"];
+     		
+		    if($origList){
+		        foreach($origList as $key => $value){
+	    	        if(array_key_exists($key, $thumbList)){
+        		        // Construct HTML.
+        	    	    $html .= "<a href='{$value}'><img alt='{$key}' src='{$thumbList[$key]}' /></a><br/>";
+        	        	
+			    	}else{
+    	    	       $html .= "<a href='$value'>{$key}</a><br/>";
+        		       
+		    		}
+				}
+            	echo $html;
+	    	}else{
+ 				echo "No original Files !!!";
+	    	}
         }else{
-
-        }
-    }
+			echo "No existing Records!!!";
+        }	
+        
+    } 
 }

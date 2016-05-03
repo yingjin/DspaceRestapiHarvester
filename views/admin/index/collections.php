@@ -25,6 +25,7 @@ echo head($head);
             <tr>
                 <th>Collection Name</th>
                 <th>Collection Handle</th>
+                <th>Number of Items</th>
                 <th>Harvest</th>
             </tr>
         </thead>
@@ -47,12 +48,14 @@ echo head($head);
                     <?php endif; ?>
                 </td>
                 <td><?php echo html_escape($collection['handle']); ?></td>
+                <td><?php echo html_escape($collection['numberItems']); ?></td>
                 <td style="white-space: nowrap"><form method="post" action="<?php echo url('dspace-restapi-harvester/index/harvest'); ?>">
                 <?php echo $this->formHidden('base_url', $this->baseUrl); ?>
                 <?php echo $this->formHidden('source_collection_id', $collection['id']); ?>
                 <?php echo $this->formHidden('collection_name', $collection['name']); ?>
                 <?php echo $this->formHidden('collection_spec', @ $collectionSpec); ?>
                 <?php echo $this->formHidden('collection_handle', $collection['handle']); ?>
+                <?php echo $this->formHidden('collection_size', $collection['numberItems']); ?>
                 <?php echo $this->formSubmit('submit_harvest', 'Go'); ?>
                 </form></td>
             </tr>

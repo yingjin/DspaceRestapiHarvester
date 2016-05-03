@@ -61,7 +61,7 @@ class DspaceRestapiHarvester_IndexController extends Omeka_Controller_AbstractAc
 
         $response = $request->listCollections();
 
-        $this->view->collections     = $response['collections'];
+        $this->view->collections     = $response;
         $this->view->baseUrl         = $this->_getParam('base_url');
     }
 
@@ -97,6 +97,7 @@ class DspaceRestapiHarvester_IndexController extends Omeka_Controller_AbstractAc
             $collectionName= $this->_getParam('collection_name');
             $collectionSpec = $this->_getParam('collection_spec');
             $collectionHandle = $this->_getParam('collection_handle');
+            $collectionSize = $this->_getParam('collection_size');
 
             $harvest = $this->_helper->db->getTable('DspaceRestapiHarvester_Harvest')->findUniqueHarvest($baseUrl, $collectionHandle);
 
@@ -109,6 +110,8 @@ class DspaceRestapiHarvester_IndexController extends Omeka_Controller_AbstractAc
                 $harvest->collection_name        = $collectionName;
                 $harvest->collection_spec = $collectionSpec;
                 $harvest->collection_handle = $collectionHandle;
+                $harvest->collection_size = $collectionSize;
+
             }
         }
 

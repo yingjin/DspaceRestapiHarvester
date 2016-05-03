@@ -31,6 +31,7 @@ class DspaceRestapiHarvester_Harvest extends Omeka_Record_AbstractRecord
     public $collection_spec;
     public $collection_name;
     public $collection_handle;
+    public $collection_size;
     public $status;
     public $status_messages;
     public $initiated;
@@ -62,33 +63,16 @@ class DspaceRestapiHarvester_Harvest extends Omeka_Record_AbstractRecord
 
     public function listRecords()
     {
-        //$query = "collections/". $this->source_collection_id . "/items.json";
-        $query = "collections/". $this->source_collection_id . "?expand=items";
+        //$query = "collections/". $this->source_collection_id . "/items?limit=" . $this->collection_size;
+		$query = "collections/". $this->source_collection_id . "/items";
+
+
 
         $client = $this->getRequest();
         $client->setBaseUrl($this->base_url);
 
         $response = $client->listRecords($query);
 
-        $recordCount = count($response);
-        if ($recordCount==0) {
-                $this->addStatusMessage("The collection returned no records.");
-        }
-
-        //return $response;
-        return $response['items'];
-    }
-
- /**
-    public function listBundles($item_id)
-    {
-        // Harvest an item bundle with given item id.
-        //$query = "items/".$item_id . "/bundles.json";
-        $query = "items/".$item_id . "/?expand=all";
-
-        $client = $this->getRequest();
-        $client->setBaseUrl($this->base_url);
-        $response = $client->listRecords($query);
         $recordCount = count($response);
         if ($recordCount==0) {
                 $this->addStatusMessage("The repository returned no records.");
@@ -97,19 +81,40 @@ class DspaceRestapiHarvester_Harvest extends Omeka_Record_AbstractRecord
         return $response;
     }
 
+    public function listMetadata($item_id)
+    {
+        $query = "items/".$item_id."/metadata";
+        $client = $this->getRequest();
+        $client->setBaseUrl($this->base_url);
+
+        $response = $client->listRecords($query);
+        return $response;
+
+    }
+
+
     public function listBitstreams($item_id, $item_handle)
     {
 
-        $bundles = $this->listBundles($item_id);
+        // Harvest an item bundle with given item id.
+        $query = "items/".$item_id . "/bitstreams";
+
+        $client = $this->getRequest();
+        $client->setBaseUrl($this->base_url);
+        $response = $client->listRecords($query);
+        $recordCount = count($response);
+        if ($recordCount==0) {
+                $this->addStatusMessage("The repository returned no records.");
+        }
         $thumbList = array();
         $origList = array();
 
         //$bundleCount = count($bundles);
-        foreach($bundles as $bundle){
+        foreach($response as $bitstream){
 
-               foreach($bundle["bitstreams"] as $bitstream){
                    $bt_name =  $bitstream["name"];
                    $bt_seq = $bitstream["sequenceId"];
+                   $bt_id = $bitstream["id"];
 
                    // FIXME : getting dspace_url in a way might break in other DSpace with different config
                    // remove the last path of restapi
@@ -119,85 +124,29 @@ class DspaceRestapiHarvester_Harvest extends Omeka_Record_AbstractRecord
                    // remove the path after last /
 
                    $dspace_url = substr($trimed_url, 0, strrpos($trimed_url, "/"));
+					$bt_url = $dspace_url;
+					
+					if(($bitstream["mimeType"] == 'audio/x-mp3' || $bitstream["mimeType"] == 'video/mp4') && ($bitstream["bundleName"] == "ORIGINAL") ){
+						$bt_url = $dspace_url . "/streaming/file_" . $bt_id . "_" . $bt_name;
+						$this->addStatusMessage("Audio/Video import: " . $bt_url);
+					}else{
+                   		$bt_url = $dspace_url ."/bitstream/handle/" . $item_handle . "/" . $bt_name . "?sequence=" . $bt_seq;
+					}
 
-                   //$query = $dspace_url. "/bitstreams/" . $bitstream_id . "/download.json?user=email&pass=";
-                   $bt_url = $dspace_url ."/bitstream/handle/" . $item_handle . "/" . $bt_name . "?sequence=" . $bt_seq;
-
-
-                   if($bundle["name"] == "THUMBNAIL"){
+                   if($bitstream["bundleName"] == "THUMBNAIL"){
                        $bt_name = substr($bt_name, 0, -4);
                        $thumbList[$bt_name] = $bt_url;
-                   }else if($bundle["name"]=="ORIGINAL"){
+                   }else if($bitstream["bundleName"]=="ORIGINAL"){
                        $origList[$bt_name] = $bt_url;
                    }
-               }
         }
+
         $listBt = array( "thumbnail" => $thumbList, "original" => $origList);
+        
         return $listBt;
     }
 
-  **/
 
-    public function listRecord($item_id){
-       $query = "items/".$item_id . "/?expand=metadata,bitstreams";
-       $client = $this->getRequest();
-       $client->setBaseUrl($this->base_url);
-       $metadata = $client->listRecords($query);
-       $recordCount = count($metadata);
-
-        if ($recordCount==0) {
-            $this->addStatusMessage("The item returned no metadata.");
-
-        }
-
-        return $metadata;
-    }
-
-    public function listBitstreams($item_id)
-    {
-
-        // Harvest an item bitstreams with given item id.
-        $query = "items/".$item_id . "/?expand=bitstreams";
-
-        $client = $this->getRequest();
-        $client->setBaseUrl($this->base_url);
-        $bitstreams = $client->listRecords($query);
-        $recordCount = count($bitstreams);
-        if ($recordCount==0) {
-            $this->addStatusMessage("The item returned no bitstream.");
-            return array("thumbnail" => null, "original" => null);
-        }
-
-        $thumbList = array();
-        $origList = array();
-
-        foreach($bitstreams['bitstreams'] as $bitstream){
-
-           $bt_name =  $bitstream["name"];
-           //$bt_seq = $bitstream["sequenceId"];
-           $bundle_name = $bitstream["bundleName"];
-           // FIXME : getting dspace_url in a way might break in other DSpace with different config
-           // remove the last path of restapi
-
-           // trim out the trailing / in url
-           //$trimed_url = rtrim($this->base_url, "/");
-           // remove the path after last /
-
-           //$dspace_url = substr($trimed_url, 0, strrpos($trimed_url, "/"));
-
-           $bt_url = $this->base_url .  $bitstream['retrieveLink'];
-
-           if($bundle_name == "THUMBNAIL"){
-               $bt_name = substr($bt_name, 0, -4);
-               $thumbList[$bt_name] = $bt_url;
-           }else if($bundle_name =="ORIGINAL"){
-               $origList[$bt_name] = $bt_url;
-           }
-        }
-        $listBt = array( "thumbnail" => $thumbList, "original" => $origList);
-        return $listBt;
-
-    }
 
     public function addStatusMessage($message, $messageCode = null, $delimiter = "\n\n")
     {

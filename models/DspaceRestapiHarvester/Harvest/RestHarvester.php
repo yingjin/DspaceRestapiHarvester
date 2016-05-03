@@ -44,7 +44,6 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     private $_elementSets;
     private $_elements;
 
-    private $_item_type_names;
     /**
      * Class constructor.
      * 
@@ -74,98 +73,76 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     {
         return $this->_options[$key];
     }
+    
+    /**
+     *
+     * @param $record The current record object
+     */
+    protected function _harvestRecord($record){
 
-    protected function _harvestRecord($id){
-
-
-        $record = $this->_harvest->listRecord($id);
-        $resultsCount = count($record);
-        if ($resultsCount>0) {
-
+        $itemMetadata = array(
+                   'item_type_name' => 'Oral History',
+                   'collection_id' => $this->_collection->id,
+                   'identifier'      => $record["id"],
+                   'modified'  => $record["lastModified"],
+                    'public'        => $this->getOption('public'),
+                    'featured'      => $this->getOption('featured'),
+               );
         // go through each metadata field
+        $elementName = "";
         $elementTexts = array();
-        $haveItemType = "";
-        foreach($record['metadata'] as $field){
+        $metadataEntries = $this->_harvest->listMetadata($record['id']);
+        foreach($metadataEntries as $metadataEntry){
+           //check if the elements set (schema) is dublin core
+            //$elementSet = "";
+            //$elements = "";
+            /*if($field["qualifier"]){
+                $elementName = $field["schema"] . '.' . $field["element"] . "." . $field["qualifier"];
+            }else{
+                $elementName = $field["schema"] . '.' . $field["element"];
+            }           */
+
+            $key = $metadataEntry['key'];
 
 
-            $key = $field['key'];
             if(array_key_exists($key, $this->_elements)){
                 $schema = substr($key, 0, strpos($key, '.'));
+
                 //$elementTexts[$elementSet][$elements[$elementName]][] = array('text' => (string) $field["value"], 'html' => (boolean) false);
-                $elementTexts = $this->_buildElementTexts($elementTexts,$this->_elementSets[$schema],$this->_elements[$key],(string) $field["value"],false);
+                $elementTexts = $this->_buildElementTexts($elementTexts, $this->_elementSets[$schema],$this->_elements[$key],(string) $metadataEntry["value"],false);
             }else{
 
                  //$this->_addStatusMessage("Elements Not IN !!!!!!!!!!!! $elementName");
             }
-
-            // Check $_item_type_names with dc.type or dc.type.dcmi
-            if($key == 'dc.type' or $key == 'dc.type.dcmi'){
-                //check if the value is in itemType table
-                /* get the item_type_names from omeka_item_types **/
-
-                $itemType = get_db()->getTable('ItemType')->find($key);
-                if ($itemType) {
-                    $haveItemType = $itemType->name;
-                }
-
-            }
-        }
-
-        if($haveItemType == ""){
-        $itemMetadata = array(
-                   'collection_id' => $this->_collection->id,
-                   'identifier'      => $id,
-                   'modified'  => $record["lastModified"],
-                    'public'        => $this->getOption('public'),
-                    'featured'      => $this->getOption('featured'),
-               );
-        }else{
-        $itemMetadata = array(
-                   'item_type_name' => $haveItemType,
-                   'collection_id' => $this->_collection->id,
-                   'identifier'      => $id,
-                   'modified'  => $record["lastModified"],
-                    'public'        => $this->getOption('public'),
-                    'featured'      => $this->getOption('featured'),
-               );
-
         }
 
         // harvest bitstream for the record
 
         $fileMetadata = array();
-        /*foreach($record['bitstreams'] as $bitstream){
-
-           $bt_name =  $bitstream["name"];
-           $bt_seq = $bitstream["sequenceId"];
-           $bundle_name = $bitstream["bundleName"];
-           $retrieveUrl =  $this->_harvest->base_url .  $bitstream['retrieveLink'];
-
-           if($bundle_name == "THUMBNAIL"){
-               $bt_name = substr($bt_name, 0, -4);
-               $fileMetadata['file_transfer_type'] = 'Url';
+       /* $bundles = $this->_harvest->listBundles($record["id"]);
+        $bundleCount = count($bundles);
+        foreach($bundles as $bundle){
+           if($bundle["name"] == "THUMBNAIL");
+               $bt_id =  $bundle["bitstreams"][0]["id"];
+               $bitstream = $this->_harvest->getBitstream($bt_id);
+	       
+               $fileMetadata['file_transfer_type'] = 'url';
                $fileMetadata['files'] = array(
                    'Upload' => null,
-                   'Url' => $retrieveUrl,
-                   'source' => $retrieveUrl,
-                   'name'   => $bt_name,
+                   'Url' => "http://dspaceland.rice.edu:8080/bitstream/handle/1911/25/IMG_2003.JPG?sequence=1",
+                   'source' => (string) "http://dspaceland.rice.edu:8080/bitstream/handle/1911/25/IMG_2003.JPG?sequence=1",
+                   'name'   => (string) "IMG_2003.jpg",
                    'metadata' => array(),
+           );
 
-               );
-           }else if($bundle_name =="ORIGINAL"){
-           }
+       } */
 
-
-        }  */
-        }
        return array('itemMetadata' => $itemMetadata,
                     'elementTexts' => $elementTexts,
                     'fileMetadata' => $fileMetadata);
 
     }
-
-
-
+    
     /**
      * Checks whether the current record has already been harvested, and
      * returns the record if it does.
@@ -174,10 +151,10 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
      * @return DspaceRestapiHarvester_Record|false The model object of the record,
      *      if it exists, or false otherwise.
      */
-    private function _recordExists($handle, $identifier)
+    private function _recordExists($json)
     {   
-        //$handle = $json["handle"];
-        //$identifier = $json["id"];
+        $handle = $json["handle"];
+        $identifier = $json["id"];
         
         /* Ideally, the handle would be globally-unique, but for
            poorly configured servers that might not be the case.  However,
@@ -217,6 +194,9 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
 	// harvest all items in a given collection
         $response = $this->_harvest->listRecords();
         $resultsCount = count($response);
+
+        _log("Number of harvested Records: ". $resultsCount, Zend_Log::INFO);
+
         if ($resultsCount>0) {
             // find out the element label and element set label
             $table = get_db()->getTable('DspaceRestapiHarvester_Elementset');
@@ -252,13 +232,13 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     private function _harvestLoop($record)
     {
         // Ignore (skip over) records not archived.
-        if (!$this->isArchivedRecord($record)) {
-            return;
-        }
-        $existingRecord = $this->_recordExists($record['handle'],$record['id']);
+        //if (!$this->isArchivedRecord($record)) {
+        //    return;
+        //}
+        $existingRecord = $this->_recordExists($record);
 
 
-        $harvestedRecord = $this->_harvestRecord($record['id']);
+        $harvestedRecord = $this->_harvestRecord($record);
         
         // Cache the record for later use.
         $this->_record = $record;
@@ -290,9 +270,9 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
      */
     public function isArchivedRecord($record)
     {
-        //return ($record["isArchived"]);
-        return ($record["archived"]);
+        return ($record["isArchived"]);
     }
+    
     /**
      * Insert a record into the database.
      * 
@@ -345,7 +325,6 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     protected function _beforeHarvest()
     {
         $harvest = $this->_getHarvest();
-
 
         $collectionMetadata = array(
             'metadata' => array(
