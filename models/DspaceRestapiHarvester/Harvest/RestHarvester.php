@@ -108,8 +108,8 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
             if(array_key_exists($key, $this->_elements)){
                 $schema = substr($key, 0, strpos($key, '.'));
 
-                //$elementTexts[$elementSet][$elements[$elementName]][] = array('text' => (string) $field["value"], 'html' => (boolean) false);
-                $elementTexts = $this->_buildElementTexts($elementTexts, $this->_elementSets[$schema],$this->_elements[$key],(string) $metadataEntry["value"],false);
+                //$elementTexts[$elementSet][$elements[$elementName]][] = array('text' => (string) $field["value"], 'html' => (boolean) true);
+                $elementTexts = $this->_buildElementTexts($elementTexts, $this->_elementSets[$schema],$this->_elements[$key],(string) $metadataEntry["value"],true);
             }else{
 
                  //$this->_addStatusMessage("Elements Not IN !!!!!!!!!!!! $elementName");
@@ -531,7 +531,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
         $elementSet, 
         $element, 
         $text, 
-        $html = false
+        $html
     ) {
         $elementTexts[$elementSet][$element][] 
             = array('text' => (string) $text, 'html' => (bool) $html);

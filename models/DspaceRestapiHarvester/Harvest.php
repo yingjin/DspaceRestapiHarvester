@@ -63,8 +63,8 @@ class DspaceRestapiHarvester_Harvest extends Omeka_Record_AbstractRecord
 
     public function listRecords()
     {
-        //$query = "collections/". $this->source_collection_id . "/items?limit=" . $this->collection_size;
-		$query = "collections/". $this->source_collection_id . "/items";
+        $query = "collections/". $this->source_collection_id . "/items?limit=9999999"; // . $this->collection_size;
+		//$query = "collections/". $this->source_collection_id . "/items";
 
 
 
