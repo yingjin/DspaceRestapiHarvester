@@ -129,6 +129,9 @@ class DspaceRestapiHarvester_Harvest extends Omeka_Record_AbstractRecord
 					if(($bitstream["mimeType"] == 'audio/x-mp3' || $bitstream["mimeType"] == 'video/mp4') && ($bitstream["bundleName"] == "ORIGINAL") ){
 						$bt_url = $dspace_url . "/streaming/file_" . $bt_id . "_" . $bt_name;
 						$this->addStatusMessage("Audio/Video import: " . $bt_url);
+					}elseif(($bitstream["mimeType"] == 'ohms/xml') && ($bitstream["bundleName"] == "ORIGINAL") ){
+						$bt_url = $dspace_url . "/ohms/viewer.php?cachefile=file_" . $bt_id . "_" . $bt_name;
+						$this->addStatusMessage("OHMS XML import: " . $bt_url);
 					}else{
                    		$bt_url = $dspace_url ."/bitstream/handle/" . $item_handle . "/" . $bt_name . "?sequence=" . $bt_seq;
 					}
