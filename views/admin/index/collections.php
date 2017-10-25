@@ -51,7 +51,7 @@ echo head($head);
                 <td><?php echo html_escape($collection['numberItems']); ?></td>
                 <td style="white-space: nowrap"><form method="post" action="<?php echo url('dspace-restapi-harvester/index/harvest'); ?>">
                 <?php echo $this->formHidden('base_url', $this->baseUrl); ?>
-                <?php echo $this->formHidden('source_collection_id', $collection['id']); ?>
+                <?php echo $this->formHidden('source_collection_id', $collection['uuid']); ?>
                 <?php echo $this->formHidden('collection_name', $collection['name']); ?>
                 <?php echo $this->formHidden('collection_spec', @ $collectionSpec); ?>
                 <?php echo $this->formHidden('collection_handle', $collection['handle']); ?>
