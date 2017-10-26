@@ -114,7 +114,7 @@ class DspaceRestapiHarvester_Harvest extends Omeka_Record_AbstractRecord
 
                    $bt_name =  $bitstream["name"];
                    $bt_seq = $bitstream["sequenceId"];
-                   $bt_id = $bitstream["id"];
+                   $bt_id = $bitstream["uuid"];
 
                    // FIXME : getting dspace_url in a way might break in other DSpace with different config
                    // remove the last path of restapi

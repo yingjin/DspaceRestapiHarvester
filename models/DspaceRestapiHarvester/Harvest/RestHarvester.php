@@ -83,7 +83,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
         $itemMetadata = array(
                    'item_type_name' => 'Oral History',
                    'collection_id' => $this->_collection->id,
-                   'identifier'      => $record["id"],
+                   'identifier'      => $record["uuid"],
                    'modified'  => $record["lastModified"],
                     'public'        => $this->getOption('public'),
                     'featured'      => $this->getOption('featured'),
@@ -91,7 +91,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
         // go through each metadata field
         $elementName = "";
         $elementTexts = array();
-        $metadataEntries = $this->_harvest->listMetadata($record['id']);
+        $metadataEntries = $this->_harvest->listMetadata($record['uuid']);
         foreach($metadataEntries as $metadataEntry){
            //check if the elements set (schema) is dublin core
             //$elementSet = "";
@@ -154,7 +154,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
     private function _recordExists($json)
     {   
         $handle = $json["handle"];
-        $identifier = $json["id"];
+        $identifier = $json["uuid"];
         
         /* Ideally, the handle would be globally-unique, but for
            poorly configured servers that might not be the case.  However,
