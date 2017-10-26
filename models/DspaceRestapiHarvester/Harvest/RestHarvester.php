@@ -285,7 +285,7 @@ class DspaceRestapiHarvester_Harvest_RestHarvester
         
         $record->harvest_id = $this->_harvest->id;
         $record->item_id    = $item->id;
-        $record->identifier = (string) $this->_record["id"];
+        $record->identifier = (string) $this->_record["uuid"];
         $record->handle = (string) $this->_record["handle"];
         $record->datestamp  = (string) $this->_record["lastModified"];
         $record->save();

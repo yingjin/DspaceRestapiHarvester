@@ -77,7 +77,7 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
         CREATE TABLE IF NOT EXISTS `{$db->prefix}dspace_restapi_harvester_harvests` (
           `id` int unsigned NOT NULL auto_increment,
           `collection_id` int unsigned default NULL,
-          `source_collection_id` text NOT NULL,
+          `source_collection_id` VARCHAR(36) NOT NULL,
           `base_url` text NOT NULL,
           `collection_spec` text,
           `collection_name` text,
