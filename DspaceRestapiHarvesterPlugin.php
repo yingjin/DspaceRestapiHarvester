@@ -286,16 +286,18 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
         $record = get_current_record('item');
         $id = $record->id; // this is the item_id from omeka
         $existRecord = $this->_db->getTable('DspaceRestapiHarvester_Record')->findByItemId($id);
-        $source_item_id = $existRecord->identifier;
 
         if ($existRecord) {
-	   		// get the harvest info and then complie the bitstream list from it
+	   		// get the harvest info and then compile the bitstream list from it
+	        $source_item_id = $existRecord->identifier;
+    	    //echo $html .= "Source Item ID: $source_item_id<br/>";
 	    	$harvest_id = $existRecord->harvest_id;
     	    $handle = $existRecord->handle;
             $harvester = $this->_db->getTable('DspaceRestapiHarvester_Harvest')->findByHarvestId($harvest_id);
 		    $bitstreams = $harvester->listBitstreams($source_item_id, $handle);
 	        $thumbList = $bitstreams["thumbnail"];
 	    	$origList = $bitstreams["original"];
+	    	//$debugInfo = $bitstreams["debuginfo"];
      		
 		    if($origList){
 		        foreach($origList as $key => $value){
@@ -310,6 +312,13 @@ class DspaceRestapiHarvesterPlugin extends Omeka_Plugin_AbstractPlugin
 				}
             	echo $html;
 	    	}else{
+	    	 /*	if($debugInfo){
+	      			foreach ($debugInfo as $key => $value){
+						$html .= "$key == $value <br />";
+	      			}
+	    		}	
+	    		echo $html;*/
+	    
  				echo "No original Files !!!";
 	    	}
         }else{
